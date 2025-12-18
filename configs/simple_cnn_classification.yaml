@@ -1,7 +1,7 @@
 task: classification
 model: SimpleCNN
 train_path: ./data/processed/cancer_dataset/train
-validation_path: ./data/processed/cancer_dataset/val
+val_path: ./data/processed/cancer_dataset/val
 test_path: ./data/processed/cancer_dataset/test
 epochs: 5
 evaluation: True

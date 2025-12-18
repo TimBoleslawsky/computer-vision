@@ -21,3 +21,6 @@ results/
 
 # Data (too large for git)
 data/
+
+# Logs
+lightning_logs/

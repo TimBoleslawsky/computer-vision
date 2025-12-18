@@ -9,7 +9,7 @@ To run the project, clone the repository and do the following:
 
 - run uv sync or poetry install to install the dependencies.
 - set up a config file in the "configs" directory. An example is provided in the "configs" directory.
-- run the project using command "uv run main.py --config "./configs/simple_cnn_classification.yaml".
+- run the project using command "uv run train_model.py --config "./configs/simple_cnn_classification.yaml".
 
 NOTE: Before this works, you need to create a directory called "data" in the root directory. Here the data should be
 organized into "raw" and "processed".

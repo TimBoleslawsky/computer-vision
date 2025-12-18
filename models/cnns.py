@@ -2,15 +2,16 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as func
 
+from .base import BaseModel
 
-# Defining Models
-class SimpleCNN(nn.Module):
+
+class SimpleCNN(BaseModel):
     """
     This is our simple CNN that we use as a starting point.
     """
 
-    def __init__(self):
-        super(SimpleCNN, self).__init__()
+    def __init__(self, learning_rate=1e-3):
+        super().__init__(learning_rate=learning_rate)
 
         # First conv block: input RGB (3) -> 16 feature maps
         self.conv1 = nn.Conv2d(3, 16, kernel_size=3, padding=1)
@@ -23,6 +24,9 @@ class SimpleCNN(nn.Module):
         # 128x128 images are 32x32 at this point
         self.fc1 = nn.Linear(32 * 32 * 32, 128)
         self.fc2 = nn.Linear(128, 2)
+
+        # Loss function
+        self.criterion = nn.CrossEntropyLoss()
 
     def forward(self, x):
         x = func.relu(self.conv1(x))
@@ -37,14 +41,14 @@ class SimpleCNN(nn.Module):
         return x
 
 
-class BatchNCNN(nn.Module):
+class BatchNCNN(BaseModel):
     """
     This is the first improvement upon our simple CNN.
     Here we introduce BatchNorm after each convolutional layer.
     """
 
-    def __init__(self):
-        super(BatchNCNN, self).__init__()
+    def __init__(self, learning_rate=1e-3):
+        super().__init__(learning_rate=learning_rate)
 
         # First conv block: input RGB (3) -> 16 feature maps
         self.conv1 = nn.Conv2d(3, 16, kernel_size=3, padding=1)
@@ -61,6 +65,9 @@ class BatchNCNN(nn.Module):
         self.bn_fc = nn.BatchNorm1d(128)
         self.fc2 = nn.Linear(128, 2)
 
+        # Loss function
+        self.criterion = nn.CrossEntropyLoss()
+
     def forward(self, x):
         x = self.pool1(func.relu(self.bn1(self.conv1(x))))
         x = self.pool2(func.relu(self.bn2(self.conv2(x))))
@@ -71,14 +78,14 @@ class BatchNCNN(nn.Module):
         return x
 
 
-class AdvancedBatchNCNN(nn.Module):
+class AdvancedBatchNCNN(BaseModel):
     """
     This is an advanced version of the BatchCNN.
     We use this model to experiment with different numbers of layers.
     """
 
-    def __init__(self):
-        super(AdvancedBatchNCNN, self).__init__()
+    def __init__(self, learning_rate=1e-3):
+        super().__init__(learning_rate=learning_rate)
 
         # Block 1: input 3 -> 16 channels
         self.conv1 = nn.Conv2d(3, 16, kernel_size=3, padding=1)
@@ -105,6 +112,9 @@ class AdvancedBatchNCNN(nn.Module):
         self.bn_fc = nn.BatchNorm1d(128)
         self.fc2 = nn.Linear(128, 2)
 
+        # Loss function
+        self.criterion = nn.CrossEntropyLoss()
+
     def forward(self, x):
         x = self.pool1(func.relu(self.bn1(self.conv1(x))))
         x = self.pool2(func.relu(self.bn2(self.conv2(x))))
@@ -117,7 +127,7 @@ class AdvancedBatchNCNN(nn.Module):
         return x
 
 
-class ResidualCNN(nn.Module):
+class ResidualCNN(BaseModel):
     """
     This is the implementation of the AdvancedBatchCNN with residual blocks.
     We omit the implementation of the BatchCnn with the residual blocks
@@ -125,8 +135,8 @@ class ResidualCNN(nn.Module):
     very similar to this implementation.
     """
 
-    def __init__(self):
-        super(ResidualCNN, self).__init__()
+    def __init__(self, learning_rate=1e-3):
+        super().__init__(learning_rate=learning_rate)
 
         # Input: [3, 128, 128] → Conv → [16, 128, 128]
         self.block1 = nn.Sequential(
@@ -154,6 +164,9 @@ class ResidualCNN(nn.Module):
         self.bn_fc = nn.BatchNorm1d(128)
         self.fc2 = nn.Linear(128, 2)
 
+        # Loss function
+        self.criterion = nn.CrossEntropyLoss()
+
     def forward(self, x):
         x = self.pool1(self.block1(x))  # [16, 64, 64]
         x = self.pool2(self.res2(self.conv2(x)))  # [32, 32, 32]
@@ -168,7 +181,7 @@ class ResidualCNN(nn.Module):
 
 class ResidualBlock(nn.Module):
     def __init__(self, channels):
-        super(ResidualBlock, self).__init__()
+        super().__init__()
         self.conv1 = nn.Conv2d(channels, channels, kernel_size=3, padding=1)
         self.bn1 = nn.BatchNorm2d(channels)
         self.relu = nn.ReLU(inplace=True)
