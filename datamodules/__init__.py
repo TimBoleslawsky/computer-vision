@@ -1,3 +1,3 @@
-from .image_folder_datamodule import ImageFolderDataModule
+from .datamodule_factory import DataModuleFactory
 
-__all__ = ["ImageFolderDataModule"]
+__all__ = ["DataModuleFactory"]

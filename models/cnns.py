@@ -5,6 +5,32 @@ import torch.nn.functional as func
 from .base import BaseModel
 
 
+class SimpleCNNSegmenter(BaseModel):
+    def __init__(self, num_classes, learning_rate=1e-3):
+        super().__init__(learning_rate)
+
+        # First conv block: input RGB (3) -> 16 feature maps
+        self.conv1 = nn.Conv2d(3, 16, kernel_size=3, padding=1)
+        self.pool1 = nn.MaxPool2d(2, 2)  # First downsampling
+
+        # Second conv block: 16 -> 32 feature maps
+        self.conv2 = nn.Conv2d(16, 32, kernel_size=3, padding=1)
+        self.pool2 = nn.MaxPool2d(2, 2)  # Second downsampling
+
+        # Segmentation head
+        self.head = nn.Conv2d(32, num_classes, kernel_size=1)
+
+    def forward(self, x):
+        x = func.relu(self.conv1(x))
+        x = self.pool1(x)
+
+        x = func.relu(self.conv2(x))
+        x = self.pool2(x)
+        
+        x = self.head(x)
+        return x
+
+
 class SimpleCNN(BaseModel):
     """
     This is our simple CNN that we use as a starting point.
@@ -24,9 +50,6 @@ class SimpleCNN(BaseModel):
         # 128x128 images are 32x32 at this point
         self.fc1 = nn.Linear(32 * 32 * 32, 128)
         self.fc2 = nn.Linear(128, 2)
-
-        # Loss function
-        self.criterion = nn.CrossEntropyLoss()
 
     def forward(self, x):
         x = func.relu(self.conv1(x))
@@ -64,9 +87,6 @@ class BatchNCNN(BaseModel):
         self.fc1 = nn.Linear(32 * 32 * 32, 128)
         self.bn_fc = nn.BatchNorm1d(128)
         self.fc2 = nn.Linear(128, 2)
-
-        # Loss function
-        self.criterion = nn.CrossEntropyLoss()
 
     def forward(self, x):
         x = self.pool1(func.relu(self.bn1(self.conv1(x))))
@@ -111,9 +131,6 @@ class AdvancedBatchNCNN(BaseModel):
         self.fc1 = nn.Linear(128 * 8 * 8, 128)
         self.bn_fc = nn.BatchNorm1d(128)
         self.fc2 = nn.Linear(128, 2)
-
-        # Loss function
-        self.criterion = nn.CrossEntropyLoss()
 
     def forward(self, x):
         x = self.pool1(func.relu(self.bn1(self.conv1(x))))
@@ -163,9 +180,6 @@ class ResidualCNN(BaseModel):
         self.fc1 = nn.Linear(128 * 8 * 8, 128)
         self.bn_fc = nn.BatchNorm1d(128)
         self.fc2 = nn.Linear(128, 2)
-
-        # Loss function
-        self.criterion = nn.CrossEntropyLoss()
 
     def forward(self, x):
         x = self.pool1(self.block1(x))  # [16, 64, 64]

@@ -5,69 +5,51 @@ from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning.loggers import TensorBoardLogger, CSVLogger
 
-from datamodules import ImageFolderDataModule
-from models import BatchNCNN, SimpleCNN, ResidualCNN, AdvancedBatchNCNN
+from datamodules import DataModuleFactory
+from models import ModelFactory
 
 
 def main(config: argparse.Namespace):
-    print("Setting up data and model...")
-    if config.task == "classification":
-        if config.model == "SimpleCNN":
-            model = SimpleCNN()
-        elif config.model == "BatchCNN":
-            model = BatchNCNN()
-        elif config.model == "ResidualCNN":
-            model = ResidualCNN()
-        elif config.model == "AdvancedBatchCNN":
-            model = AdvancedBatchNCNN()
-        else:
-            raise ValueError("Invalid model name.")
+    print("Setting up data module and model...")
+    model_factory = ModelFactory()
+    model = model_factory.create_model(config)
 
-        # Prepare LightningDataModule
-        dm = ImageFolderDataModule(
-            train_dir=config.train_path,
-            val_dir=config.val_path,
-            test_dir=config.test_path,
-            batch_size=8,
-            num_workers=4,
-            image_size=(128, 128),
-            mean=(0.5,),
-            std=(0.5,),
-            augment=True,
-        )
-        dm.setup()
+    datamodule_factory = DataModuleFactory()
+    dm = datamodule_factory.create_datamodule(config)
 
-        # Run training and evaluation
-        results_path = f"{config.model}_{config.task}"
-        tb_logger = TensorBoardLogger(
-            save_dir="results",
-            name=results_path
-        )
-        csv_logger = CSVLogger(
-            save_dir="results",
-            name=results_path
-        )
-        print(f"Training {config.model} on {config.train_path} dataset for {config.task} task...")
-        trainer = Trainer(
-            max_epochs=config.epochs,
-            logger=[tb_logger, csv_logger],
-            callbacks=[
-                EarlyStopping(monitor='val_acc', patience=3, mode='max'),
-                ModelCheckpoint(
-                    monitor='val_acc',
-                    mode='max',
-                    dirpath=f"results/{results_path}/version_0/checkpoints"
-                )
-            ]
-        )
-        trainer.fit(model, dm.train_dataloader(), dm.val_dataloader())
-        print(f"Training done. Model saved to {config.save_path}.")
-        if config.evaluation:
-            print("Evaluating model on test set...")
-            trainer.test(model, dm.test_dataloader())
-            print("Evaluation done.")
-        else:
-            print("Evaluation skipped.")
+    # Run training
+    print(f"Training {config.model} on {config.train_path} dataset for {config.task} task...")
+    results_path = f"{config.model}_{config.task}"
+    tb_logger = TensorBoardLogger(
+        save_dir="results",
+        name=results_path
+    )
+    csv_logger = CSVLogger(
+        save_dir="results",
+        name=results_path
+    )
+    trainer = Trainer(
+        max_epochs=config.epochs,
+        logger=[tb_logger, csv_logger],
+        callbacks=[
+            EarlyStopping(monitor='val_acc', patience=3, mode='max'),
+            ModelCheckpoint(
+                monitor='val_acc',
+                mode='max',
+                dirpath=f"results/{results_path}/version_0/checkpoints"
+            )
+        ]
+    )
+    trainer.fit(model, dm.train_dataloader(), dm.val_dataloader())
+    print(f"Training done. Model saved to {config.save_path}.")
+
+    # Run evaluation if configured
+    if config.evaluation:
+        print("Evaluating model on test set...")
+        trainer.test(model, dm.test_dataloader())
+        print("Evaluation done.")
+    else:
+        print("Evaluation skipped.")
 
 
 if __name__ == "__main__":

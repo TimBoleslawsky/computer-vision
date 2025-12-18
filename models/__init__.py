@@ -1,3 +1,3 @@
-from .cnns import SimpleCNN, ResidualCNN, BatchNCNN, AdvancedBatchNCNN
+from .model_factory import ModelFactory
 
-__all__ = ["SimpleCNN", "ResidualCNN", "BatchNCNN", "AdvancedBatchNCNN"]
+__all__ = ["ModelFactory"]
